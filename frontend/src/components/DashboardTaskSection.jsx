@@ -4,34 +4,36 @@ import DashboardTaskCard from "./DashboardTaskCard";
 
 const DashboardTaskSection = ({ title, tasks = [], icon, onStatusChange, emptyMessage, color = "blue" }) => {
   const { darkMode } = useContext(ThemeContext);
-  
+
   // Ensure tasks is always an array
   const safeTaskList = Array.isArray(tasks) ? tasks : [];
-  
+
   const colorClasses = {
-    blue: darkMode 
-      ? "bg-blue-900/30 border-blue-700 text-blue-300" 
-      : "bg-blue-50 border-blue-200 text-blue-800",
-    red: darkMode 
-      ? "bg-red-900/30 border-red-700 text-red-300" 
-      : "bg-red-50 border-red-200 text-red-800",
-    green: darkMode 
-      ? "bg-green-900/30 border-green-700 text-green-300" 
-      : "bg-green-50 border-green-200 text-green-800",
-    yellow: darkMode 
-      ? "bg-yellow-900/30 border-yellow-700 text-yellow-300" 
-      : "bg-yellow-50 border-yellow-200 text-yellow-800"
+    blue: "from-blue-500/20 to-blue-600/5 border-blue-500/30",
+    red: "from-red-500/20 to-red-600/5 border-red-500/30",
+    green: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/30",
+    yellow: "from-amber-500/20 to-amber-600/5 border-amber-500/30"
   };
-  
+
+  const textClasses = {
+    blue: "text-blue-800 dark:text-white dark:font-extrabold",
+    red: "text-red-800 dark:text-white dark:font-extrabold",
+    green: "text-emerald-800 dark:text-white dark:font-extrabold",
+    yellow: "text-amber-800 dark:text-white dark:font-extrabold"
+  };
+
   return (
-    <div className={`mb-8 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-lg shadow-md p-5 border`}>
-      <div className={`flex items-center mb-4 px-3 py-1.5 rounded-lg ${colorClasses[color]}`}>
-        <span className="text-xl mr-2">{icon}</span>
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <div className="glass-card p-6 mb-8">
+      <div className={`flex items-center mb-6 px-4 py-3 rounded-xl bg-gradient-to-r border ${colorClasses[color] || colorClasses.blue}`}>
+        <span className={`text-2xl mr-3 ${textClasses[color] || textClasses.blue}`}>{icon}</span>
+        <h2 className={`text-lg font-bold tracking-wide ${textClasses[color] || textClasses.blue}`}>{title}</h2>
+        <span className="ml-auto bg-white/20 dark:bg-white/10 px-3 py-1 rounded-full text-xs font-medium text-slate-800 dark:text-white">
+          {safeTaskList.length}
+        </span>
       </div>
-      
+
       {safeTaskList.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {safeTaskList.map((task) => (
             task && task._id ? (
               <DashboardTaskCard key={task._id} task={task} onStatusChange={onStatusChange} />
@@ -39,9 +41,11 @@ const DashboardTaskSection = ({ title, tasks = [], icon, onStatusChange, emptyMe
           ))}
         </div>
       ) : (
-        <p className={`text-center py-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-          {emptyMessage}
-        </p>
+        <div className="glass-panel p-8 text-center border-dashed border-2 border-slate-300 dark:border-slate-700/50">
+          <p className="text-slate-500 dark:text-slate-200 italic">
+            {emptyMessage}
+          </p>
+        </div>
       )}
     </div>
   );

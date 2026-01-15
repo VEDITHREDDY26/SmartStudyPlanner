@@ -6,16 +6,23 @@ const createTask = async (req, res) => {
       // Log the request body for debugging
       console.log('Task creation request body:', req.body);
       
-      const { subject, description, priority, targetDateTime, status, userId, isReviewTask } = req.body;
+      const { subject, description, priority, targetDateTime, status, isReviewTask } = req.body;
       
-      // Create a task object with default userId if not provided
+      // Get user ID from the authenticated request
+      const userId = req.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Create a task object
       const taskData = {
         subject,
         description,
         priority,
         targetDateTime,
         status,
-        userId: userId || 'defaultuser123',
+        userId, // Use the authenticated user's ID
         isReviewTask: isReviewTask || false
       };
       
@@ -45,16 +52,58 @@ const createTask = async (req, res) => {
 // Get All Tasks
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Only find tasks belonging to the current user
+    const tasks = await Task.find({ userId });
     res.status(200).json(tasks);
   } catch (err) {
     res.status(500).json({ message: "Error fetching tasks", error: err.message });
   }
 };
 
+// Get Single Task by ID
+const getTaskById = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Find task by ID and ensure it belongs to the user
+    const task = await Task.findOne({ _id: req.params.id, userId });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.status(200).json(task);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching task", error: err.message });
+  }
+};
+
 // Update Task
 const updateTask = async (req, res) => {
   try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Find task by ID and ensure it belongs to the user
+    const task = await Task.findOne({ _id: req.params.id, userId });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found or unauthorized" });
+    }
+
     const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.status(200).json(updated);
   } catch (err) {
@@ -65,6 +114,19 @@ const updateTask = async (req, res) => {
 // Delete Task
 const deleteTask = async (req, res) => {
   try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Find task by ID and ensure it belongs to the user
+    const task = await Task.findOne({ _id: req.params.id, userId });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found or unauthorized" });
+    }
+
     await Task.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Task deleted" });
   } catch (err) {
@@ -76,7 +138,12 @@ const deleteTask = async (req, res) => {
 const getTaskStats = async (req, res) => {
   try {
     // Get user ID from the authenticated request
-    const userId = req.userId || 'defaultuser123';
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
     console.log('Getting stats for user:', userId);
     
     // Get all tasks for this user
@@ -161,8 +228,15 @@ const getDueReviewTasks = async (req, res) => {
   try {
     const now = new Date();
     
-    // Find all review tasks that are due for review
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    // Find all review tasks that are due for review and belong to the user
     const dueReviewTasks = await Task.find({
+      userId,
       isReviewTask: true,
       nextReviewAt: { $lte: now },
       status: { $ne: 'Completed' }
@@ -184,11 +258,16 @@ const completeReview = async (req, res) => {
       return res.status(400).json({ message: "Task ID is required" });
     }
     
-    // Find the task
-    const task = await Task.findById(taskId);
+    // Find the task and ensure it belongs to the user
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const task = await Task.findOne({ _id: taskId, userId });
     
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({ message: "Task not found or unauthorized" });
     }
     
     if (!task.isReviewTask) {
@@ -256,6 +335,7 @@ const completeReview = async (req, res) => {
 module.exports = {
   createTask,
   getAllTasks,
+  getTaskById,
   updateTask,
   deleteTask,
   getTaskStats,

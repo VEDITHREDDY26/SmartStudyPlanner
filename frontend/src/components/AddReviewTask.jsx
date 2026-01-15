@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeContext } from '../context/ThemeContext';
+import { API_BASE_URL } from '../config/api';
 
 const AddReviewTask = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -44,7 +45,7 @@ const AddReviewTask = () => {
       }
       
       await axios.post(
-        'http://localhost:5000/api/tasks/create',
+        `${API_BASE_URL}/tasks/create`,
         formData,
         {
           headers: {

@@ -46,28 +46,65 @@ const getOrCreateProfile = async (req, res) => {
 // Update user profile
 const updateProfile = async (req, res) => {
   try {
-    // Use the _id provided by the auth middleware instead of id
-    const userId = req.user?._id || req.body.userId || 'defaultuser123';
-    const updateData = req.body;
+    const userId = req.user?._id || req.body.userId;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const { displayName, bio, avatar, theme, notifications, emailPreferences } = req.body;
     
-    // Remove fields that shouldn't be directly updated by clients
-    const protectedFields = ['points', 'level', 'experience', 'streak', 'achievements'];
-    protectedFields.forEach(field => delete updateData[field]);
-    
-    const profile = await UserProfile.findOneAndUpdate(
-      { userId: userId.toString() },
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-    
-    if (!profile) {
-      return res.status(404).json({ message: 'User profile not found' });
+    // Update user profile
+    const updateData = {};
+    if (displayName !== undefined) updateData.displayName = displayName;
+    if (bio !== undefined) updateData.bio = bio;
+    if (avatar !== undefined) updateData.avatar = avatar;
+    if (theme !== undefined) updateData.theme = theme;
+    if (notifications) {
+      updateData['notifications.email'] = notifications.email !== undefined ? notifications.email : true;
+      updateData['notifications.push'] = notifications.push !== undefined ? notifications.push : false;
+    }
+    if (emailPreferences) {
+      updateData['emailPreferences.dailyReminder'] = 
+        emailPreferences.dailyReminder !== undefined ? emailPreferences.dailyReminder : true;
+      updateData['emailPreferences.taskReminders'] = 
+        emailPreferences.taskReminders !== undefined ? emailPreferences.taskReminders : true;
+      updateData['emailPreferences.weeklySummary'] = 
+        emailPreferences.weeklySummary !== undefined ? emailPreferences.weeklySummary : true;
     }
     
-    res.status(200).json(profile);
+    // Find and update the user document
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { 
+        $set: updateData,
+        ...(displayName && { name: displayName }), // Also update the name in the User model
+        updatedAt: new Date()
+      },
+      { new: true, select: '-password' } // Don't return the password
+    );
+
+    // Update the profile as well
+    const updatedProfile = await UserProfile.findOneAndUpdate(
+      { userId: userId.toString() },
+      { 
+        $set: {
+          displayName: displayName || updatedUser?.name,
+          bio,
+          avatar,
+          theme,
+          updatedAt: new Date()
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({
+      ...updatedUser.toObject(),
+      profile: updatedProfile
+    });
   } catch (error) {
-    console.error('Error in updateProfile:', error);
-    res.status(500).json({ message: 'Error updating user profile', error: error.message });
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Error updating profile', error: error.message });
   }
 };
 

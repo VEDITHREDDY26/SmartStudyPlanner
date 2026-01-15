@@ -15,9 +15,9 @@ export const ThemeProvider = ({ children }) => {
     
     // Apply the theme to the body element
     if (darkMode) {
-      document.body.classList.add('dark-mode');
+      document.body.classList.add('dark');
     } else {
-      document.body.classList.remove('dark-mode');
+      document.body.classList.remove('dark');
     }
   }, [darkMode]);
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const ProgressTracker = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -28,7 +29,7 @@ const ProgressTracker = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://localhost:5000/api/progress/stats', {
+      const response = await axios.get(`${API_BASE_URL}/progress/stats`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../config/api";
 
 const TaskManager = () => {
   const [tasks, setTasks] = useState([]);
@@ -9,7 +10,7 @@ const TaskManager = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/tasks", {
+      const res = await axios.get(`${API_BASE_URL}/tasks`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       setTasks(res.data);
@@ -23,7 +24,7 @@ const TaskManager = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     try {
-      await axios.post("http://localhost:5000/api/tasks/create", task, {
+      await axios.post(`${API_BASE_URL}/tasks/create`, task, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       toast.success("Task created successfully!");
@@ -35,7 +36,7 @@ const TaskManager = () => {
   const handleDelete = async (taskId) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       setTasks(tasks.filter((task) => task._id !== taskId));

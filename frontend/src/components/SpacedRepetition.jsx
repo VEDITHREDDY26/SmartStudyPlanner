@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ThemeContext } from '../context/ThemeContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from '../config/api';
 
 const SpacedRepetition = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -33,7 +34,7 @@ const SpacedRepetition = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:5000/api/tasks/reviews/due', {
+      const response = await axios.get(`${API_BASE_URL}/tasks/reviews/due`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -63,7 +64,7 @@ const SpacedRepetition = () => {
       }
       
       const response = await axios.post(
-        'http://localhost:5000/api/tasks/reviews/complete',
+        `${API_BASE_URL}/tasks/reviews/complete`,
         {
           taskId: currentTask._id,
           difficultyRating
@@ -110,7 +111,7 @@ const SpacedRepetition = () => {
       };
       
       const response = await axios.post(
-        'http://localhost:5000/api/tasks/reviews',
+        `${API_BASE_URL}/tasks/reviews`,
         reviewTaskData,
         {
           headers: {

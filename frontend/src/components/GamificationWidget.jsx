@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config/api';
 
 const GamificationWidget = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -27,7 +28,7 @@ const GamificationWidget = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:5000/api/gamify/stats', {
+      const response = await axios.get(`${API_BASE_URL}/gamify/stats`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -47,7 +48,7 @@ const GamificationWidget = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://localhost:5000/api/gamify/leaderboard', {
+      const response = await axios.get(`${API_BASE_URL}/gamify/leaderboard`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -108,65 +109,59 @@ const GamificationWidget = () => {
   }
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-200 text-gray-800'} rounded-lg shadow-md p-4 border`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className={`text-lg font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-          Your Progress
+    <div className="glass-card p-6 border border-white/20 shadow-xl h-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold flex items-center text-slate-900 dark:text-white">
+          <span className="mr-2">🏆</span> Your Progress
         </h2>
         <div className="flex items-center">
-          <span className={`font-medium text-xs px-2 py-1 rounded-full ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
+          <span className="font-bold text-xs px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-sm border border-white/20">
             Level {profile.level}
           </span>
         </div>
       </div>
       
       {/* Level Progress Bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1">
-          <span>Points: {profile.points}</span>
-          <span>Next Level: {profile.level * 100}</span>
+      <div className="mb-6 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-white/10 dark:border-white/5">
+        <div className="flex justify-between text-xs font-semibold mb-2 text-slate-700 dark:text-slate-300">
+          <span>{profile.points} pts</span>
+          <span>Next: {profile.level * 100} pts</span>
         </div>
-        <div className={`w-full h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full`}>
+        <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
           <div 
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" 
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full shadow-lg" 
             style={{ width: `${calculateProgress()}%` }}
           ></div>
         </div>
       </div>
       
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-          <div className="text-sm font-medium mb-1">Current Streak</div>
-          <div className="text-xl font-bold flex items-center">
-            {profile.streakDays || 0} <span className="ml-1">🔥</span>
-          </div>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 flex flex-col items-center justify-center text-center">
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">{profile.streakDays || 0} 🔥</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Day Streak</div>
         </div>
-        <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-          <div className="text-sm font-medium mb-1">Achievements</div>
-          <div className="text-xl font-bold">{profile.achievements ? profile.achievements.length : 0}</div>
-        </div>
-        <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-          <div className="text-sm font-medium mb-1">Best Streak</div>
-          <div className="text-xl font-bold">{profile.longestStreak || 0}</div>
+        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex flex-col items-center justify-center text-center">
+          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">{profile.achievements ? profile.achievements.length : 0} 🏅</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Badges</div>
         </div>
       </div>
       
       {/* Recent Achievements */}
       {profile.achievements && profile.achievements.length > 0 && (
-        <div className="mb-4">
-          <h3 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Recent Achievements
+        <div className="mb-6">
+          <h3 className="text-sm font-bold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+            Recent Unlocks
           </h3>
           <div className="flex flex-wrap gap-2">
             {profile.achievements.slice(0, 5).map((achievement, index) => (
               <div 
                 key={index}
-                className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'} flex items-center`}
+                className="px-3 py-1.5 rounded-lg bg-white/60 dark:bg-slate-700/60 border border-slate-200 dark:border-white/10 flex items-center shadow-sm"
                 title={achievement.description}
               >
-                <span className="text-xl mr-2">{achievement.icon}</span>
-                <span className="text-xs">{achievement.name}</span>
+                <span className="text-lg mr-2">{achievement.icon}</span>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{achievement.name}</span>
               </div>
             ))}
           </div>
@@ -176,16 +171,12 @@ const GamificationWidget = () => {
       {/* Leaderboard Toggle */}
       <button
         onClick={() => setShowLeaderboard(!showLeaderboard)}
-        className={`w-full py-2 rounded-lg ${
-          darkMode
-            ? 'bg-blue-900/30 text-blue-300 hover:bg-blue-900/50'
-            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-        } text-sm flex justify-center items-center transition-colors`}
+        className="w-full py-2.5 rounded-xl glass-button-secondary text-sm font-bold flex justify-center items-center shadow-sm hover:shadow transition-all"
       >
-        {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'} 
+        {showLeaderboard ? 'Hide Leaderboard' : 'View Leaderboard'} 
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          className={`h-4 w-4 ml-1 transform transition-transform ${showLeaderboard ? 'rotate-180' : ''}`} 
+          className={`h-4 w-4 ml-2 transform transition-transform ${showLeaderboard ? 'rotate-180' : ''}`} 
           fill="none" 
           viewBox="0 0 24 24" 
           stroke="currentColor"
@@ -196,37 +187,42 @@ const GamificationWidget = () => {
       
       {/* Leaderboard */}
       {showLeaderboard && (
-        <div className={`mt-4 p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-          <h3 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Leaderboard
+        <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-white/10 max-h-60 overflow-y-auto custom-scrollbar">
+          <h3 className="text-sm font-bold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider text-center">
+            Top Learners
           </h3>
           {leaderboard.length > 0 ? (
             <div className="space-y-2">
               {leaderboard.map((leaderUser, index) => (
                 <div 
                   key={index}
-                  className={`flex items-center justify-between p-2 rounded ${
+                  className={`flex items-center justify-between p-2.5 rounded-lg border ${
                     leaderUser.userId?._id === profile.userId
-                      ? darkMode ? 'bg-blue-900/30' : 'bg-blue-100'
-                      : ''
+                      ? 'bg-indigo-500/10 border-indigo-500/30'
+                      : 'bg-white dark:bg-slate-700/30 border-slate-200 dark:border-white/5'
                   }`}
                 >
                   <div className="flex items-center">
-                    <span className="font-bold mr-2">#{index + 1}</span>
-                    <span>{getDisplayName(leaderUser.userId)}</span>
-                    {leaderUser.userId?._id === profile.userId && (
-                      <span className="ml-2 text-xs italic">(You)</span>
-                    )}
+                    <span className={`font-bold mr-3 w-6 h-6 flex items-center justify-center rounded-full text-xs ${
+                      index === 0 ? 'bg-yellow-100 text-yellow-700' : 
+                      index === 1 ? 'bg-gray-100 text-gray-700' : 
+                      index === 2 ? 'bg-orange-100 text-orange-700' : 
+                      'bg-slate-100 text-slate-600 dark:bg-slate-600 dark:text-slate-300'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <span className={`text-sm font-semibold ${leaderUser.userId?._id === profile.userId ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                      {getDisplayName(leaderUser.userId)}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-semibold">{leaderUser.points}</span>
-                    <span className="ml-1 text-xs">pts</span>
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {leaderUser.points} pts
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm">No leaderboard data available</p>
+            <p className="text-center text-sm text-slate-500">No data available</p>
           )}
         </div>
       )}

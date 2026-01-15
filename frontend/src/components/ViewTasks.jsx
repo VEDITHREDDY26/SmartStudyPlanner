@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeContext } from "../context/ThemeContext";
+import { API_BASE_URL } from "../config/api";
 
 const ViewTasks = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -30,7 +31,7 @@ const ViewTasks = () => {
     }
 
     try {
-      const response = await axios.get("http://localhost:5000/api/tasks", {
+      const response = await axios.get(`${API_BASE_URL}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,7 +74,7 @@ const ViewTasks = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/tasks/${taskId}`,
+        `${API_BASE_URL}/tasks/${taskId}`,
         { status: newStatus },
         {
           headers: {
@@ -101,7 +102,7 @@ const ViewTasks = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/tasks/${taskId}`,
+        `${API_BASE_URL}/tasks/${taskId}`,
         editForm,
         {
           headers: {
@@ -131,7 +132,7 @@ const ViewTasks = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

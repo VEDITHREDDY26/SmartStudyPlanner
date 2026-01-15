@@ -6,7 +6,7 @@ const protect = (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   } else {
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'No authorization header found',
       todaysTasks: [],
       dueTasks: [],
@@ -24,7 +24,7 @@ const protect = (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'Not authorized, no token',
       todaysTasks: [],
       dueTasks: [],
@@ -43,19 +43,22 @@ const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Set user object on the request with consistent properties
-    req.user = { 
+    req.user = {
       _id: decoded.id,
       email: decoded.email
     };
-    
+
+    // Explicitly set userId for easier access in controllers
+    req.userId = decoded.id;
+
     console.log('Authenticated user ID:', req.user._id);
-    
+
     next();
   } catch (error) {
     console.error('Token verification error:', error);
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'Not authorized, token failed',
       todaysTasks: [],
       dueTasks: [],

@@ -1,23 +1,48 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: '🏠' },
@@ -27,195 +52,275 @@ const Navbar = () => {
     { name: 'Pomodoro', path: '/pomodoro', icon: '⏰' },
   ];
 
+  // Shared styles
+  const navShellBase =
+    'max-w-7xl mx-auto px-4 py-3 rounded-2xl transition-all duration-300 backdrop-blur-xl border flex items-center justify-between shadow-lg';
+
+  const navShellTop = darkMode
+    ? 'bg-slate-900/70 border-white/10 shadow-lg'
+    : 'bg-white/70 border-slate-200/60 shadow-md';
+
+  const navShellScrolled = darkMode
+    ? 'bg-slate-900/90 border-white/20 shadow-2xl'
+    : 'bg-white/95 border-slate-200/80 shadow-2xl';
+
+  const profilePanelBg = darkMode
+    ? 'bg-slate-900/95 border border-white/10'
+    : 'bg-white border border-slate-200 shadow-xl';
+
+  const mobileMenuBg = darkMode
+    ? 'bg-slate-900/95 border border-white/10'
+    : 'bg-white border border-slate-200 shadow-lg';
+
   return (
-    <nav className={`${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} 
-      sticky top-0 z-40 border-b shadow-sm transition-all duration-300 py-2`}
+    <motion.nav
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 mb-8"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
-          {/* Logo and Desktop Nav */}
-          <div className="flex items-center">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center mr-6 transition-transform hover:scale-105">
-              <Link to="/dashboard" className="flex items-center">
-                <span className={`text-2xl ${darkMode ? 'text-indigo-400' : 'text-indigo-600'} mr-2 transition-transform hover:rotate-5`}>
-                  📚
-                </span>
-                <span className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  StudyHub
-                </span>
-              </Link>
-            </div>
-            
-            {/* Desktop Navigation Links */}
-            <div className="hidden sm:flex sm:items-center sm:ml-4 sm:space-x-4">
-              {navLinks.map((link) => (
-                <div key={link.path} className="transition-transform hover:-translate-y-0.5">
-                  <Link
-                    to={link.path}
-                    className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
-                      ${isActive(link.path)
-                        ? darkMode
-                          ? 'bg-gray-800 text-white'
-                          : 'bg-indigo-50 text-indigo-700'
-                        : darkMode
-                          ? 'text-gray-300 hover:text-white hover:bg-gray-800'
-                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+      <div
+        className={`${navShellBase} ${scrolled ? navShellScrolled : navShellTop
+          }`}
+      >
+        {/* Logo + Desktop Nav */}
+        <div className="flex items-center">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center group">
+            <motion.span
+              className="text-2xl mr-2"
+              whileHover={{ rotate: 20 }}
+            >
+              📚
+            </motion.span>
+            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
+              SmartStudyPlanner
+            </span>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex md:items-center md:ml-8 md:space-x-2">
+            {navLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="relative px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 group"
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="navbar-indicator"
+                      className="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-xl"
+                      transition={{
+                        type: 'spring',
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                    />
+                  )}
+                  <span
+                    className={`relative flex items-center ${active
+                      ? 'text-indigo-600 dark:text-indigo-300'
+                      : 'text-slate-600 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-white'
                       }`}
                   >
-                    <span className="mr-2 h-4 w-4">{link.icon}</span>
+                    <span className="mr-2">{link.icon}</span>
                     {link.name}
-                  </Link>
-                </div>
-              ))}
-            </div>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
-          
-          {/* Right Side - Add Task, Dark Mode & Logout */}
-          <div className="flex items-center">
-            {/* Add Task button */}
-            <Link
-              to="/add-task"
-              className={`hidden sm:flex items-center mr-3 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105
-                ${darkMode 
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
-                  : 'bg-indigo-500 hover:bg-indigo-600 text-white'
-                }`}
+        </div>
+
+        {/* Right Side */}
+        <div className="flex items-center space-x-4">
+          {/* Add Task button (Desktop) */}
+          <Link
+            to="/add-task"
+            className="hidden sm:flex items-center rounded-full border border-indigo-500/50 bg-indigo-500/90 hover:bg-indigo-400 text-white px-4 py-2 text-sm font-semibold shadow-md transition-colors"
+          >
+            <svg
+              className="mr-1.5 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg className="mr-1.5 -ml-0.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Task
-            </Link>
-            
-            {/* Dark mode toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full mx-2 transition-all duration-200 hover:scale-110 ${
-                darkMode 
-                  ? 'bg-gray-800 text-yellow-300 hover:bg-gray-700' 
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Task
+          </Link>
+
+          {/* Dark Mode Toggle */}
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleDarkMode}
+            className={`p-2 rounded-full border transition-colors shadow-sm ${darkMode
+              ? 'bg-slate-800 text-yellow-300 border-slate-700 hover:bg-slate-700'
+              : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
               }`}
-              aria-label="Toggle dark mode"
+          >
+            {darkMode ? '☀️' : '🌙'}
+          </motion.button>
+
+          {/* Profile Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+              className="flex items-center space-x-2 focus:outline-none"
             >
-              {darkMode ? (
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white/10">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            </motion.button>
+
+            <AnimatePresence>
+              {isProfileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.18 }}
+                  className={`absolute right-0 mt-2 w-60 rounded-xl overflow-hidden ${profilePanelBg} z-50`}
+                >
+                  <div className="px-4 py-3 border-b border-white/5 dark:border-slate-800">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {user?.name || 'Student'}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {user?.email || 'your-email@example.com'}
+                    </p>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    Your Profile
+                  </Link>
+                  <Link
+                    to="/settings/notifications"
+                    className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    Notification Settings
+                  </Link>
+
+                  <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsProfileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </motion.div>
               )}
-            </button>
-            
-            {/* Logout button */}
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
             <button
-              onClick={handleLogout}
-              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105
-                ${darkMode 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-red-500 hover:bg-red-600 text-white'
-                }`}
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="p-2 rounded-md text-slate-500 dark:text-slate-300 hover:text-indigo-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <svg className="mr-1.5 -ml-0.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </button>
-            
-            {/* Mobile menu button */}
-            <div className="flex items-center sm:hidden ml-3">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`inline-flex items-center justify-center p-2 rounded-md transition-all duration-200 ${
-                  darkMode 
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
-                    : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'
-                }`}
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <svg 
-                  className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`} 
-                  stroke="currentColor" 
-                  fill="none" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M4 6h16M4 12h16M4 18h16" 
+                {isMobileMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
                   />
-                </svg>
-                <svg 
-                  className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`} 
-                  stroke="currentColor" 
-                  fill="none" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M6 18L18 6M6 6l12 12" 
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
                   />
-                </svg>
-              </button>
-            </div>
+                )}
+              </svg>
+            </button>
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className={`sm:hidden transition-all duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {/* Add Task button for mobile */}
-            <Link
-              to="/add-task"
-              className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                darkMode 
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                  : 'bg-indigo-500 text-white hover:bg-indigo-600'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Task
-            </Link>
-            
-            {/* Regular nav links */}
-            {navLinks.map((link) => (
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden overflow-hidden mt-2"
+          >
+            <div className={`rounded-2xl px-3 pt-2 pb-3 space-y-1 backdrop-blur-xl ${mobileMenuBg}`}>
               <Link
-                key={link.path}
-                to={link.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-all duration-200
-                  ${isActive(link.path)
-                    ? darkMode
-                      ? 'bg-gray-800 text-white'
-                      : 'bg-indigo-50 text-indigo-700'
-                    : darkMode
-                      ? 'text-gray-300 hover:text-white hover:bg-gray-800'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                to="/add-task"
+                className="flex items-center px-3 py-2 rounded-xl text-base font-medium bg-indigo-600/90 text-white shadow-md"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <div className="flex items-center">
-                  <span className="mr-3 h-5 w-5">{link.icon}</span>
-                  {link.name}
-                </div>
+                <svg
+                  className="mr-3 h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Task
               </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </nav>
+
+              {navLinks.map((link) => {
+                const active = isActive(link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`block px-3 py-2 rounded-xl text-base font-medium transition-colors ${active
+                      ? 'bg-indigo-500/90 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/70'
+                      }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="flex items-center">
+                      <span className="mr-3">{link.icon}</span>
+                      {link.name}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 };
 

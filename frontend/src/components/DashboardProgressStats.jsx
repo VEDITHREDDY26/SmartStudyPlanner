@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
+import { motion } from "framer-motion";
 
 const DashboardProgressStats = ({ stats = {} }) => {
   const { darkMode } = useContext(ThemeContext);
-  
+
   // Safely destructure stats with defaults
   const {
     totalTasks = 0,
@@ -13,64 +14,55 @@ const DashboardProgressStats = ({ stats = {} }) => {
     streakDays = 0,
     bestStreak = 0
   } = stats || {};
-  
+
   // Calculate completion percentage
   const completionPercentage = totalTasks > 0
     ? Math.round((completedTasks / totalTasks) * 100)
     : 0;
-  
+
+  const statItems = [
+    { label: "Total Tasks", value: totalTasks, color: "text-slate-800 dark:text-white" },
+    { label: "Completed", value: completedTasks, color: "text-emerald-600 dark:text-emerald-400" },
+    { label: "In Progress", value: inProgressTasks, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Not Started", value: notStartedTasks, color: "text-slate-500 dark:text-slate-300" },
+    { label: "Current Streak", value: streakDays, icon: "🔥", color: "text-orange-600 dark:text-orange-400" },
+    { label: "Best Streak", value: bestStreak, icon: "🏆", color: "text-yellow-600 dark:text-yellow-400" },
+  ];
+
   return (
-    <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-lg shadow-md p-4 sm:p-5 mb-6 sm:mb-8 border`}>
-      <h2 className={`text-lg font-semibold ${darkMode ? "text-gray-200" : "text-gray-800"} mb-3 sm:mb-4`}>Progress Overview</h2>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 mb-4">
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Tasks</p>
-          <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-gray-200" : "text-gray-800"}`}>{totalTasks}</p>
-        </div>
-        
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Completed</p>
-          <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-green-400" : "text-green-600"}`}>{completedTasks}</p>
-        </div>
-        
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>In Progress</p>
-          <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-blue-400" : "text-blue-600"}`}>{inProgressTasks}</p>
-        </div>
-        
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Not Started</p>
-          <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{notStartedTasks}</p>
-        </div>
-        
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Current Streak</p>
-          <div className="flex items-center">
-            <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-orange-400" : "text-orange-600"}`}>{streakDays}</p>
-            <span className="ml-1 text-lg">🔥</span>
-          </div>
-        </div>
-        
-        <div className={`${darkMode ? "bg-gray-700" : "bg-gray-50"} p-2 sm:p-3 rounded-lg`}>
-          <p className={`text-xs uppercase ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Best Streak</p>
-          <div className="flex items-center">
-            <p className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}>{bestStreak}</p>
-            <span className="ml-1 text-lg">🏆</span>
-          </div>
-        </div>
+    <div className="glass-card p-6 mb-8 border border-white/20 shadow-xl">
+      <h2 className="text-2xl font-bold mb-6 flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
+        <span className="mr-3 p-2 bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400">📊</span> Progress Overview
+      </h2>
+
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        {statItems.map((item, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="glass-panel p-4 flex flex-col items-center justify-center text-center border border-white/10 shadow-sm"
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">{item.label}</p>
+            <div className="flex items-center justify-center">
+              <p className={`text-3xl font-extrabold ${item.color} drop-shadow-sm`}>{item.value}</p>
+              {item.icon && <span className="ml-2 text-xl filter drop-shadow-md">{item.icon}</span>}
+            </div>
+          </motion.div>
+        ))}
       </div>
-      
-      <div className="mb-2 flex justify-between items-center">
-        <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>Completion Rate</span>
-        <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-800"}`}>{completionPercentage}%</span>
+
+      <div className="flex justify-between items-center mb-2 px-1">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Completion Rate</span>
+        <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{completionPercentage}%</span>
       </div>
-      
-      <div className={`w-full h-3 ${darkMode ? "bg-gray-700" : "bg-gray-200"} rounded-full overflow-hidden`}>
-        <div 
-          className="h-full bg-green-500 rounded-full transition-all duration-500 ease-in-out"
-          style={{ width: `${completionPercentage}%` }}
-        ></div>
+
+      <div className="w-full h-4 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden backdrop-blur-sm border border-slate-200 dark:border-white/5">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${completionPercentage}%` }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+        ></motion.div>
       </div>
     </div>
   );

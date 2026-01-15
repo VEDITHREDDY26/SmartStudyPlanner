@@ -3,6 +3,7 @@ const { protect } = require('../middleware/authMiddleware');
 const {
   createTask,
   getAllTasks,
+  getTaskById,
   updateTask,
   deleteTask,
   getTaskStats,
@@ -25,6 +26,7 @@ router.post('/', protect, createTask);
 
 // Add authentication middleware to update and delete routes
 router.get('/', protect, getAllTasks);
+router.get('/:id', protect, getTaskById); // Get single task endpoint
 router.put('/:id', protect, updateTask); // Update task endpoint
 router.delete('/:id', protect, deleteTask); // Delete task endpoint
 

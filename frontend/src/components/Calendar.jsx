@@ -4,6 +4,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths,
 import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 
 const Calendar = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -27,7 +28,7 @@ const Calendar = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:5000/api/tasks', {
+      const response = await axios.get(`${API_BASE_URL}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

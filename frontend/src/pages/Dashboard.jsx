@@ -3,19 +3,19 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeContext } from "../context/ThemeContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DashboardTaskSection from "../components/DashboardTaskSection";
 import DashboardProgressStats from "../components/DashboardProgressStats";
 import GamificationWidget from "../components/GamificationWidget";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "../config/api";
 
 function Dashboard() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { darkMode } = useContext(ThemeContext);
-  
-  // Set initial state with safe default values for all tasks
+
   const [taskData, setTaskData] = useState({
     todaysTasks: [],
     dueTasks: [],
@@ -30,53 +30,43 @@ function Dashboard() {
       pendingTasks: 0
     }
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [authChecking, setAuthChecking] = useState(true); // New state for auth checking
-  const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded at least once
+  const [authChecking, setAuthChecking] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.2
+      transition: {
+        staggerChildren: 0.1
       }
     }
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: { type: "spring", stiffness: 100 }
     }
   };
 
-  // Function to fetch task statistics
   const fetchTaskStats = async () => {
-    if (!dataLoaded) {
-      setLoading(true);
-    }
+    if (!dataLoaded) setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No auth token found");
-      }
-      
-      const res = await axios.get("http://localhost:5000/api/tasks/stats", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      if (!token) throw new Error("No auth token found");
+
+      const res = await axios.get(`${API_BASE_URL}/tasks/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      
-      // Ensure all task arrays are properly initialized even if the API doesn't return them
+
       const safeTaskData = {
         todaysTasks: Array.isArray(res.data.todaysTasks) ? res.data.todaysTasks : [],
         dueTasks: Array.isArray(res.data.dueTasks) ? res.data.dueTasks : [],
@@ -84,14 +74,10 @@ function Dashboard() {
         upcomingTasks: Array.isArray(res.data.upcomingTasks) ? res.data.upcomingTasks : [],
         pendingTasks: Array.isArray(res.data.pendingTasks) ? res.data.pendingTasks : [],
         stats: res.data.stats || {
-          totalTasks: 0,
-          completedTasks: 0,
-          inProgressTasks: 0,
-          notStartedTasks: 0,
-          pendingTasks: 0
+          totalTasks: 0, completedTasks: 0, inProgressTasks: 0, notStartedTasks: 0, pendingTasks: 0
         }
       };
-      
+
       setTaskData(safeTaskData);
       setDataLoaded(true);
     } catch (err) {
@@ -100,11 +86,10 @@ function Dashboard() {
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
-      setAuthChecking(false); // Always set authChecking to false after loading
+      setAuthChecking(false);
     }
   };
 
-  // Handle task status change
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -112,16 +97,13 @@ function Dashboard() {
         toast.error("You must be logged in to update tasks");
         return;
       }
-      
-      // Optimistically update the UI
+
       const updateTaskInList = (list) => {
-        return list.map(task => 
-          task._id === taskId 
-            ? { ...task, status: newStatus } 
-            : task
+        return list.map(task =>
+          task._id === taskId ? { ...task, status: newStatus } : task
         );
       };
-      
+
       setTaskData(prev => ({
         ...prev,
         todaysTasks: updateTaskInList(prev.todaysTasks),
@@ -131,235 +113,192 @@ function Dashboard() {
           ? [...(prev.completedTasks || []), { ...prev.todaysTasks.find(t => t._id === taskId), status: "Completed" }]
           : prev.completedTasks?.filter(task => task._id !== taskId) || []
       }));
-      
-      // Actually update on the server
-      await axios.put(`http://localhost:5000/api/tasks/${taskId}`, 
+
+      await axios.put(`${API_BASE_URL}/tasks/${taskId}`,
         { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // Fetch updated task stats to refresh the UI
+
       fetchTaskStats();
-      
-      // Show a success message
       toast.success(`Task marked as ${newStatus}`);
-      
-      // If completing a task, award points through gamification system
+
       if (newStatus === "Completed") {
         try {
           await axios.post(
-            "http://localhost:5000/api/gamify/task-complete",
+            `${API_BASE_URL}/gamify/task-complete`,
             { taskId },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         } catch (error) {
           console.error("Error awarding points:", error);
-          // Don't show an error toast as this is a non-critical operation
         }
       }
     } catch (error) {
       console.error("Error updating task status:", error);
       toast.error("Failed to update task. Please try again.");
-      
-      // Revert the optimistic UI update
       fetchTaskStats();
     }
   };
-  
-  // Check auth and load data on component mount
+
   useEffect(() => {
     const loadDashboard = async () => {
-      // Check for token directly to avoid waiting for authChecking state
       const token = localStorage.getItem("token");
-      
       if (token) {
-        // Token exists, proceed with data fetch
         fetchTaskStats();
       } else {
-        // No token, redirect to login
         setAuthChecking(false);
         setLoading(false);
         navigate("/login");
       }
-      
-      // Add a safety timeout to ensure we don't stay in loading state forever
       setTimeout(() => {
         setAuthChecking(false);
         setLoading(false);
       }, 3000);
     };
-    
     loadDashboard();
   }, [navigate]);
-  
-  // Handle "Add Task" button click
-  const handleAddTaskClick = () => {
-    navigate("/add-task");
-  };
-  
-  const handleRefreshData = () => {
-    fetchTaskStats();
-  };
-  
-  const handleCalendarClick = () => {
-    navigate("/calendar");
-  };
 
   return (
-    <div className={`min-h-screen py-6 transition-colors duration-300 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-800"}`}>
-      <ToastContainer position="top-right" autoClose={3000} theme={darkMode ? "dark" : "light"} />
-      
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 sm:px-6 lg:px-8"
-      >
-        {authChecking && loading && !dataLoaded ? (
-          <div className="flex justify-center items-center h-[80vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <div>
-            {/* Dashboard Header */}
-            <motion.div 
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
-            >
-              <div>
-                <h2 className={`text-xl ${darkMode ? "text-blue-400" : "text-blue-600"} font-medium mb-1`}>
-                  Welcome, {user?.name || 'Student'}! 👋
-                </h2>
-                <h1 className="text-3xl font-bold">StudyBuddy Dashboard</h1>
-                <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-              
-              <div className="flex space-x-3 mt-4 md:mt-0">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleAddTaskClick}
-                  className={`px-4 py-2 rounded-md ${darkMode 
-                    ? "bg-blue-600 hover:bg-blue-700" 
-                    : "bg-blue-500 hover:bg-blue-600"} text-white flex items-center`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                  Add Task
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleRefreshData}
-                  className={`p-2 rounded-md ${darkMode 
-                    ? "bg-gray-700 hover:bg-gray-600" 
-                    : "bg-gray-200 hover:bg-gray-300"}`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                  </svg>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleCalendarClick}
-                  className={`p-2 rounded-md ${darkMode 
-                    ? "bg-gray-700 hover:bg-gray-600" 
-                    : "bg-gray-200 hover:bg-gray-300"}`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                  </svg>
-                </motion.button>
-              </div>
-            </motion.div>
-            
-            {/* Loading State */}
-            {loading && dataLoaded ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : error ? (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={`text-center py-10 ${darkMode ? "text-red-400" : "text-red-600"}`}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-7xl mx-auto"
+    >
+      {authChecking && loading && !dataLoaded ? (
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+      ) : (
+        <div>
+          {/* Dashboard Header */}
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 mt-4"
+          >
+            <div>
+              <h2 className="text-lg text-indigo-600 dark:text-indigo-400 font-medium mb-1">
+                Welcome back, {user?.name || user?.firstName || user?.email?.split('@')[0] || 'Student'}! 👋
+              </h2>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white heading-gradient">
+                Dashboard
+              </h1>
+              <p className="mt-1 text-slate-600 dark:text-slate-400">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+
+            <div className="flex space-x-3 mt-4 md:mt-0">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/add-task")}
+                className="glass-button flex items-center bg-indigo-600 text-white border-none hover:bg-indigo-700"
               >
-                <p>{error}</p>
-                <button
-                  onClick={handleRefreshData}
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Try Again
-                </button>
-              </motion.div>
-            ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Task
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchTaskStats}
+                className="p-3 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md transition-all"
+                title="Refresh Data"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                </svg>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/calendar")}
+                className="p-3 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md transition-all"
+                title="Calendar View"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {loading && dataLoaded ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
+          ) : error ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-10 text-red-400"
+            >
+              <p>{error}</p>
+              <button
+                onClick={fetchTaskStats}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              >
+                Try Again
+              </button>
+            </motion.div>
+          ) : (
               <div>
                 {/* Progress Stats Section */}
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="mb-8"
+                  className="mb-10"
                 >
                   <DashboardProgressStats stats={taskData.stats} />
                 </motion.div>
-                
+
                 {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   {/* Task sections - 2 columns on larger screens */}
-                  <div className="lg:col-span-2 space-y-6">
+                  <div className="lg:col-span-2 space-y-10">
                     <motion.div
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
-                      className="space-y-6"
+                      className="space-y-10"
                     >
                       {/* Today's tasks */}
                       <motion.div variants={itemVariants}>
-                        <DashboardTaskSection 
-                          title="Today's Tasks" 
-                          tasks={taskData.todaysTasks} 
-                          icon="📝" 
+                        <DashboardTaskSection
+                          title="Today's Tasks"
+                          tasks={taskData.todaysTasks}
+                          icon="📝"
                           onStatusChange={handleStatusChange}
                           emptyMessage="No tasks scheduled for today"
                           color="blue"
                         />
                       </motion.div>
-                      
+
                       {/* Overdue tasks */}
                       <motion.div variants={itemVariants}>
-                        <DashboardTaskSection 
-                          title="Overdue Tasks" 
-                          tasks={taskData.dueTasks} 
-                          icon="⏰" 
+                        <DashboardTaskSection
+                          title="Overdue Tasks"
+                          tasks={taskData.dueTasks}
+                          icon="⏰"
                           onStatusChange={handleStatusChange}
                           emptyMessage="No overdue tasks"
                           color="red"
                         />
                       </motion.div>
-                      
+
                       {/* Upcoming tasks */}
                       <motion.div variants={itemVariants}>
-                        <DashboardTaskSection 
-                          title="Upcoming Tasks" 
-                          tasks={taskData.upcomingTasks} 
-                          icon="🔮" 
+                        <DashboardTaskSection
+                          title="Upcoming Tasks"
+                          tasks={taskData.upcomingTasks}
+                          icon="🔮"
                           onStatusChange={handleStatusChange}
                           emptyMessage="No upcoming tasks scheduled"
                           color="yellow"
@@ -367,90 +306,96 @@ function Dashboard() {
                       </motion.div>
                     </motion.div>
                   </div>
-                  
+
                   {/* Side column */}
-                  <motion.div 
+                  <motion.div
                     initial={{ x: 20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="lg:w-full space-y-6"
+                    className="lg:w-full space-y-10"
                   >
                     {/* Gamification Widget */}
                     <GamificationWidget />
-                  
+
                     {/* Quick actions card */}
-                    <motion.div 
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                      className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-lg shadow-md p-5 mb-8 border transition-all duration-300`}
+                    <motion.div
+                      whileHover={{ y: -5 }}
+                      className="glass-card p-6 border border-white/20 shadow-xl"
                     >
-                      <h2 className={`text-lg font-semibold ${darkMode ? "text-gray-200" : "text-gray-800"} mb-4`}>Quick Actions</h2>
-                      <div className="space-y-3">
-                        <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
-                          <Link to="/add-task" className={`flex items-center p-3 ${darkMode ? "bg-blue-900/30 text-blue-300 hover:bg-blue-900/50" : "bg-blue-50 text-blue-700 hover:bg-blue-100"} rounded-lg transition-all duration-300`}>
-                            <span className="mr-2">➕</span>
-                            Add New Task
+                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                        <span className="mr-2">⚡</span> Quick Actions
+                      </h2>
+                      <div className="grid grid-cols-1 gap-4">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Link to="/add-task" className="flex items-center justify-center p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg transition-all duration-300 border border-white/10 group">
+                            <span className="mr-3 text-2xl group-hover:rotate-90 transition-transform duration-300">➕</span>
+                            <span className="font-bold text-lg">Add New Task</span>
                           </Link>
                         </motion.div>
-                        <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
-                          <Link to="/tasks" className={`flex items-center p-3 ${darkMode ? "bg-green-900/30 text-green-300 hover:bg-green-900/50" : "bg-green-50 text-green-700 hover:bg-green-100"} rounded-lg transition-all duration-300`}>
-                            <span className="mr-2">📋</span>
-                            View All Tasks
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Link to="/tasks" className="flex items-center justify-center p-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                            <span className="mr-3 text-xl">📋</span>
+                            <span className="font-bold">View All Tasks</span>
                           </Link>
                         </motion.div>
-                        <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
-                          <Link to="/calendar" className={`flex items-center p-3 ${darkMode ? "bg-purple-900/30 text-purple-300 hover:bg-purple-900/50" : "bg-purple-50 text-purple-700 hover:bg-purple-100"} rounded-lg transition-all duration-300`}>
-                            <span className="mr-2">📅</span>
-                            Calendar View
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Link to="/calendar" className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                            <span className="mr-3 text-xl">📅</span>
+                            <span className="font-bold">Calendar View</span>
                           </Link>
                         </motion.div>
                       </div>
                     </motion.div>
-                    
+
                     {/* Recently completed tasks */}
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
-                      className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-lg shadow-md p-5 border`}
+                      className="glass-card p-6 border border-white/20 shadow-xl"
                     >
-                      <h2 className={`text-lg font-semibold ${darkMode ? "text-gray-200" : "text-gray-800"} mb-4`}>Recently Completed</h2>
+                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                        <span className="mr-2">✅</span> Recently Completed
+                      </h2>
                       {taskData.completedTasks && taskData.completedTasks.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {taskData.completedTasks.slice(0, 5).map((task, index) => (
-                            <motion.div 
+                            <motion.div
                               key={task._id || index}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
                               whileHover={{ scale: 1.02 }}
-                              className={`flex items-center p-2 border-b ${darkMode ? "border-gray-700" : "border-gray-100"}`}
+                              className="flex items-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 shadow-sm"
                             >
-                              <div className={`${darkMode ? "bg-green-900/30" : "bg-green-100"} p-1 rounded-full mr-3`}>
-                                <svg className={`h-5 w-5 ${darkMode ? "text-green-400" : "text-green-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              <div className="bg-emerald-500/20 p-2 rounded-full mr-4 flex-shrink-0">
+                                <svg className="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
                                 </svg>
                               </div>
-                              <div>
-                                <p className={`text-sm font-medium line-through ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{task.subject}</p>
-                                <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-                                  {new Date(task.updatedAt || Date.now()).toLocaleDateString()}
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-slate-200 line-through truncate">{task.subject}</p>
+                                <p className="text-xs text-slate-400 mt-1">
+                                  {new Date(task.updatedAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
                             </motion.div>
                           ))}
                         </div>
                       ) : (
-                        <p className={`text-center py-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>No completed tasks yet</p>
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-400 bg-white/5 rounded-xl border border-dashed border-slate-500/30">
+                          <span className="text-2xl mb-2 opacity-50">💤</span>
+                          <p>No completed tasks yet</p>
+                        </div>
                       )}
                     </motion.div>
                   </motion.div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </motion.div>
-    </div>
+          )}
+        </div>
+      )}
+    </motion.div>
   );
 }
 

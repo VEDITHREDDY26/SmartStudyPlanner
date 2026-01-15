@@ -5,13 +5,23 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    // Check if the stored object has a nested 'user' property (legacy fix)
+    return parsed.user ? parsed.user : parsed;
   });
 
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", userData.token); // ✅ Store token too
+    // Handle both { user, token } structure and direct user object
+    const userToSave = userData.user || userData;
+    
+    setUser(userToSave);
+    localStorage.setItem("user", JSON.stringify(userToSave));
+    
+    // Store token if present
+    if (userData.token) {
+        localStorage.setItem("token", userData.token); 
+    }
   };
 
   const logout = () => {

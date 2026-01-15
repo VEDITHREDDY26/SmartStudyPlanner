@@ -4,14 +4,17 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import AddTask from "./components/AddTask";
+import EditTask from "./components/EditTask"; // Import EditTask
 import ViewTasks from "./components/ViewTasks";
 import PomodoroTimer from "./components/PomodoroTimer";
 import SpacedRepetition from "./components/SpacedRepetition";
 import AddReviewTask from "./components/AddReviewTask";
 import CalendarPage from "./pages/CalendarPage";
 import ProfilePage from "./pages/ProfilePage";
+
+import NotificationSettings from "./components/NotificationSettings";
 import PrivateRoute from "./components/PrivateRoute";
-import Navbar from "./components/Navbar";
+import Layout from "./components/Layout";
 import { ThemeProvider } from "./context/ThemeContext";
 import './App.css';
 import ProgressTracker from './components/ProgressTracker';
@@ -26,22 +29,35 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes with Navbar */}
+          {/* Protected Routes with Layout */}
           <Route
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Navbar />
-                <Dashboard />
+                <Layout>
+                  <Dashboard />
+                </Layout>
               </PrivateRoute>
             }
           />
+
           <Route
             path="/add-task"
             element={
               <PrivateRoute>
-                <Navbar />
-                <AddTask />
+                <Layout>
+                  <AddTask />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/edit-task/:id"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <EditTask />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -49,8 +65,9 @@ function App() {
             path="/tasks"
             element={
               <PrivateRoute>
-                <Navbar />
-                <ViewTasks />
+                <Layout>
+                  <ViewTasks />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -58,8 +75,9 @@ function App() {
             path="/pomodoro"
             element={
               <PrivateRoute>
-                <Navbar />
-                <PomodoroTimer />
+                <Layout>
+                  <PomodoroTimer />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -67,8 +85,9 @@ function App() {
             path="/flashcards"
             element={
               <PrivateRoute>
-                <Navbar />
-                <SpacedRepetition />
+                <Layout>
+                  <SpacedRepetition />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -76,8 +95,9 @@ function App() {
             path="/spaced-repetition"
             element={
               <PrivateRoute>
-                <Navbar />
-                <SpacedRepetition />
+                <Layout>
+                  <SpacedRepetition />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -85,8 +105,9 @@ function App() {
             path="/add-review-task"
             element={
               <PrivateRoute>
-                <Navbar />
-                <AddReviewTask />
+                <Layout>
+                  <AddReviewTask />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -94,8 +115,9 @@ function App() {
             path="/calendar"
             element={
               <PrivateRoute>
-                <Navbar />
-                <CalendarPage />
+                <Layout>
+                  <CalendarPage />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -103,8 +125,21 @@ function App() {
             path="/profile"
             element={
               <PrivateRoute>
-                <Navbar />
-                <ProfilePage />
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings/notifications"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <div className="max-w-4xl mx-auto px-4 py-8">
+                    <NotificationSettings />
+                  </div>
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -112,8 +147,9 @@ function App() {
             path="/progress"
             element={
               <PrivateRoute>
-                <Navbar />
-                <ProgressTracker />
+                <Layout>
+                  <ProgressTracker />
+                </Layout>
               </PrivateRoute>
             }
           />

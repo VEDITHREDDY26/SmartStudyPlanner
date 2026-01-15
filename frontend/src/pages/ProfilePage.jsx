@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
+import { API_BASE_URL } from '../config/api';
 
 const ProfilePage = () => {
   const { user } = useContext(AuthContext);
@@ -28,7 +29,7 @@ const ProfilePage = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:5000/api/user-profile/profile', {
+      const response = await axios.get(`${API_BASE_URL}/user-profile/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -53,7 +54,7 @@ const ProfilePage = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:5000/api/gamify/stats', {
+      const response = await axios.get(`${API_BASE_URL}/gamify/stats`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

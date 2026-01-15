@@ -1,152 +1,239 @@
 import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ThemeContext } from '../context/ThemeContext';
 
 const Home = () => {
-  const navigate = useNavigate();
   const { darkMode } = useContext(ThemeContext);
 
-  const handleGetStarted = () => {
-    navigate("/signup");
-  };
+  const pageBg = darkMode
+    ? 'bg-slate-950 text-white'
+    : 'bg-slate-50 text-slate-900';
 
-  const handleLogin = () => {
-    navigate("/login");
-  };
+  const cardBg = darkMode
+    ? 'bg-slate-900/80 border border-white/10'
+    : 'bg-white/90 border border-slate-200/80';
+
+  const featureCardBg = darkMode
+    ? 'bg-slate-900/80 border border-white/10'
+    : 'bg-white shadow-md border border-slate-200';
+
+  const heroTextMuted = darkMode ? 'text-slate-100' : 'text-slate-700';
+
+  const pillText = darkMode ? 'text-indigo-200' : 'text-indigo-700';
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-800'}`}>
+    <div className={`min-h-screen relative overflow-hidden ${pageBg}`}>
+      {/* Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Soft gradient overlay to keep text readable */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-950/95 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950" />
+
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 45, 0],
+            opacity: [0.15, 0.3, 0.15],
+          }}
+          transition={{ duration: 20, repeat: Infinity }}
+          className="absolute -top-40 -right-40 w-[900px] h-[900px] bg-indigo-500/25 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            rotate: [0, -45, 0],
+            opacity: [0.15, 0.3, 0.15],
+          }}
+          transition={{ duration: 25, repeat: Infinity }}
+          className="absolute -bottom-40 -left-40 w-[700px] h-[700px] bg-pink-500/25 rounded-full blur-3xl"
+        />
+      </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <span className="text-2xl font-bold text-indigo-600">StudyTracker</span>
+      <motion.header
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="relative z-50 px-4 sm:px-6 lg:px-8 py-6"
+      >
+        <div
+          className={`max-w-7xl mx-auto flex justify-between items-center rounded-2xl px-6 py-3 backdrop-blur-xl shadow-lg ${cardBg}`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📚</span>
+            <span className="text-xl font-bold tracking-tight">
+              SmartStudyPlanner
+            </span>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link to="/login" className="text-gray-600 hover:text-indigo-600 transition-colors">Login</Link>
-            <Link to="/signup" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition-colors">
+          <div className="flex items-center space-x-3">
+            <Link
+              to="/login"
+              className="text-sm font-semibold hover:underline underline-offset-4"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-md bg-indigo-500 hover:bg-indigo-400 text-white transition-colors"
+            >
               Sign Up Free
             </Link>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Hero Section */}
-      <div className="relative">
-        <div className="absolute inset-0">
-          <img
-            src="/images/study-hero.jpg"
-            alt="Study Hero"
-            className="w-full h-full object-cover opacity-20"
-          />
-          <div className={`absolute inset-0 ${darkMode ? 'bg-gray-900' : 'bg-white'} bg-opacity-75`}></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-              <span className="block">Welcome to Your</span>
-              <span className="block text-blue-600">Study Companion</span>
-            </h1>
-            <p className="mt-3 max-w-md mx-auto text-base sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Organize your tasks, track your progress, and achieve your academic goals with our comprehensive study tools.
-            </p>
-            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-              <div className="rounded-md shadow">
-                <Link
-                  to="/tasks"
-                  className={`w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10`}
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </div>
+      <div className="relative z-10 pt-14 pb-24 lg:pt-24 lg:pb-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold bg-black/20 border border-white/10 backdrop-blur-md mb-6"
+          >
+            <span className={pillText}>NEW</span>
+            <span className={heroTextMuted}>
+              Plan tasks · Focus deeply · Track your progress
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6"
+          >
+            <span className="block mb-1">
+              Master Your
+            </span>
+            <span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">
+              Study Journey
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15 }}
+            className={`mt-3 max-w-2xl mx-auto text-lg md:text-xl font-medium ${heroTextMuted}`}
+          >
+            The ultimate study companion for students. Track tasks, stay focused
+            with Pomodoro, and retain more with spaced repetition — all in one
+            beautiful dashboard.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
+          >
+            <Link
+              to="/signup"
+              className="inline-flex justify-center items-center rounded-full px-8 py-3 text-base md:text-lg font-semibold shadow-xl bg-indigo-500 hover:bg-indigo-400 text-white transition-all hover:-translate-y-0.5"
+            >
+              Get Started Now
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex justify-center items-center rounded-full px-8 py-3 text-base md:text-lg font-semibold border border-slate-400/60 bg-black/10 hover:bg-black/20 backdrop-blur-lg transition-all hover:-translate-y-0.5"
+            >
+              I already have an account
+            </Link>
+          </motion.div>
         </div>
       </div>
 
       {/* Features Section */}
-      <section className="py-12">
+      <section className="relative z-10 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:text-center">
-            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
-            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight sm:text-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <h2 className="text-sm font-bold tracking-[0.2em] uppercase mb-3 text-indigo-300">
+              Features
+            </h2>
+            <p className="text-2xl md:text-3xl font-extrabold tracking-tight">
               Everything you need to succeed
             </p>
-          </div>
+            <p
+              className={`mt-3 max-w-2xl mx-auto text-sm md:text-base ${heroTextMuted}`}
+            >
+              Built for busy students who want clarity, focus, and consistent
+              progress — without the chaos of scattered notes and apps.
+            </p>
+          </motion.div>
 
-          <div className="mt-10">
-            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Task Management */}
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6`}>
-                <div className="text-4xl mb-4">📝</div>
-                <h3 className="text-lg font-medium">Task Management</h3>
-                <p className="mt-2 text-base">Organize your tasks, set priorities, and track your progress.</p>
-              </div>
-
-              {/* Pomodoro Timer */}
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6`}>
-                <div className="text-4xl mb-4">⏰</div>
-                <h3 className="text-lg font-medium">Pomodoro Timer</h3>
-                <p className="mt-2 text-base">Stay focused with our customizable Pomodoro timer.</p>
-              </div>
-
-              {/* Flashcards */}
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6`}>
-                <div className="text-4xl mb-4">📚</div>
-                <h3 className="text-lg font-medium">Flashcards</h3>
-                <p className="mt-2 text-base">Create and review flashcards with spaced repetition.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-indigo-600 rounded-2xl p-8 md:p-12 shadow-xl">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white mb-6">Start Your Study Journey Today</h2>
-              <p className="text-xl text-indigo-100 mb-8">
-                Join thousands of students who have improved their productivity and academic performance.
-              </p>
-              <button
-                onClick={handleGetStarted}
-                className="bg-white text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-lg text-lg font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: '📝',
+                title: 'Task Management',
+                desc: 'Organize assignments, exams, and projects with due dates, priorities, and tags.',
+              },
+              {
+                icon: '⏰',
+                title: 'Pomodoro Timer',
+                desc: 'Stay on track with focused study sessions and built-in break reminders.',
+              },
+              {
+                icon: '🧠',
+                title: 'Spaced Repetition',
+                desc: 'Review flashcards at the right time so concepts stay in your long-term memory.',
+              },
+              {
+                icon: '📊',
+                title: 'Progress Tracking',
+                desc: 'Visualize your streaks, completed tasks, and weekly study time.',
+              },
+              {
+                icon: '🏆',
+                title: 'Gamification',
+                desc: 'Earn XP, unlock levels, and keep your motivation high with streaks and rewards.',
+              },
+              {
+                icon: '📅',
+                title: 'Smart Calendar',
+                desc: 'See tasks and study blocks on a clean calendar so you never miss a deadline.',
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08, duration: 0.4 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+                className={`rounded-2xl p-6 md:p-7 backdrop-blur-xl transition-all ${featureCardBg}`}
               >
-                Sign Up Free
-              </button>
-              <p className="mt-4 text-indigo-200">No credit card required. Free forever.</p>
-            </div>
+                <div className="text-3xl md:text-4xl mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg md:text-xl font-bold mb-2">
+                  {feature.title}
+                </h3>
+                <p className={`text-sm md:text-base ${heroTextMuted}`}>
+                  {feature.desc}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">StudyTracker</h3>
-              <p className="text-gray-400">Your all-in-one solution for academic success and productivity.</p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><Link to="/login" className="text-gray-400 hover:text-white transition-colors">Login</Link></li>
-                <li><Link to="/signup" className="text-gray-400 hover:text-white transition-colors">Sign Up</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contact</h3>
-              <p className="text-gray-400">support@studytracker.com</p>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} StudyTracker. All rights reserved.</p>
-          </div>
+      <footer className="relative z-10 border-t border-white/10 bg-black/20 backdrop-blur-xl py-8 mt-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+          <p className={heroTextMuted}>
+            &copy; {new Date().getFullYear()} SmartStudyPlanner. All rights
+            reserved.
+          </p>
+          <p className={`text-xs ${heroTextMuted}`}>
+            Built to help you stay organized, focused, and confident.
+          </p>
         </div>
       </footer>
     </div>
