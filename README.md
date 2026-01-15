@@ -383,7 +383,7 @@ Contributions are welcome! Please follow these steps:
 **Vedith Reddy Kommula**
 
 - Email: vedithreddykommula@gmail.com
-- LinkedIn: [Your LinkedIn Profile](https://www.linkedin.com/in/vedith-reddy-kommula/)
+- LinkedIn: [LinkedIn Profile](https://www.linkedin.com/in/vedith-reddy-kommula/)
 - GitHub: [@VEDITHREDDY26](https://github.com/VEDITHREDDY26)
 
 ---
