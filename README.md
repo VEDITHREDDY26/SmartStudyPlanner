@@ -14,7 +14,7 @@ A comprehensive full-stack productivity application designed to help students an
 
 ### Dashboard - Progress Overview
 
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 _Comprehensive dashboard displaying task statistics, completion rates, current streaks, and daily task overview with personalized greetings_
 
 **Key Metrics Visible:**
