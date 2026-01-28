@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { ThemeContext } from "../context/ThemeContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../config/api";
 
@@ -119,6 +119,27 @@ const EditTask = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      await axios.delete(`${API_BASE_URL}/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success("Task deleted successfully!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      toast.error("Failed to delete task.");
+    }
+  };
+
   const categoryOptions = [
     { value: "Study", label: "Study 📚" },
     { value: "Project", label: "Project 🛠️" },
@@ -142,7 +163,6 @@ const EditTask = () => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-800'} p-4`}>
-      <ToastContainer position="top-right" theme={darkMode ? "dark" : "light"} />
       
       <div className="max-w-3xl mx-auto">
         <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-8 rounded-lg shadow-md border transition-all`}>

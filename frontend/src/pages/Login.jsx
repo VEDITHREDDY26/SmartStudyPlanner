@@ -38,7 +38,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex w-full">
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="dark" style={{ zIndex: 9999 }} />
 
       {/* Left Side - Form Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-950 relative overflow-hidden">

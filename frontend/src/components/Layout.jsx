@@ -8,7 +8,12 @@ const Layout = ({ children }) => {
     return (
         <div className="min-h-screen pb-12 px-4 sm:px-6 lg:px-8 relative">
             <AnimatedBackground />
-            <ToastContainer position="top-right" autoClose={3000} theme="dark" />
+            <ToastContainer 
+                position="top-right" 
+                autoClose={3000} 
+                theme="dark"
+                style={{ zIndex: 9999 }}
+            />
             <Navbar />
             <main className="relative z-10">
                 {children}

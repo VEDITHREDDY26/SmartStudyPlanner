@@ -4,7 +4,7 @@ import { ThemeContext } from "../context/ThemeContext";
 import axios from "axios";
 import { motion } from "framer-motion";
 
-const DashboardTaskCard = ({ task, onStatusChange }) => {
+const DashboardTaskCard = ({ task, onStatusChange, onDelete }) => {
   // Add safety check for null/undefined task
   if (!task || !task._id) {
     return null; // Don't render anything if task is invalid
@@ -59,16 +59,27 @@ const DashboardTaskCard = ({ task, onStatusChange }) => {
 
       // If task is being marked as completed, update progress
       if (newStatus === "Completed") {
-        await axios.post('/api/progress/completed-tasks');
+        try {
+          await axios.post('/api/progress/completed-tasks');
 
-        // Check if task was completed before 9 AM for Early Bird achievement
-        const now = new Date();
-        if (now.getHours() < 9) {
-          await axios.post('/api/progress/early-bird-task');
+          // Check if task was completed before 9 AM for Early Bird achievement
+          const now = new Date();
+          if (now.getHours() < 9) {
+            await axios.post('/api/progress/early-bird-task');
+          }
+        } catch (err) {
+          console.error('Error awarding points/achievements:', err);
         }
       }
     } catch (error) {
       console.error('Error updating task status:', error);
+    }
+  };
+
+  const handleLocalDelete = (e) => {
+    e.preventDefault();
+    if (onDelete) {
+      onDelete(_id);
     }
   };
 
@@ -121,25 +132,11 @@ const DashboardTaskCard = ({ task, onStatusChange }) => {
             <span className="mr-1.5 transform group-hover/edit:rotate-12 transition-transform">✏️</span> Edit
           </Link>
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              if(window.confirm("Delete this task?")) {
-                // We'll need to implement a delete handler prop or local delete
-                 // Ideally this component should receive an onDelete prop
-                 // For now, let's just log or alert, but to fix it properly we need to pass onDelete down.
-                 // Actually, the user wants to delete. 
-                 // Let's assume we can pass onDelete from Dashboard.jsx or handle it here with axios?
-                 // Handling here with axios requires refreshing the dashboard data. 
-                 // It's better if we pass an onDelete prop.
-                 // Checking Dashboard.jsx to see if we can pass onDelete.
-              }
-            }}
-             // Wait, I should verify if I can pass onDelete before adding this code.
-             // I'll revert to just adding it to EditTask first, then check Dashboard.
-             // But the user is complaining now.
-             // Let's stick to EditTask for now as it's cleaner. 
-             // IF I add it here, I need to wire it up properly.
-          />
+            onClick={handleLocalDelete}
+            className="text-sm font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors flex items-center group/delete px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+          >
+            <span className="mr-1.5 transform group-hover/delete:scale-110 transition-transform">🗑️</span> Delete
+          </button>
           <Link
             to={`/tasks`}
             className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center group/view px-2 py-1 rounded hover:bg-slate-50 dark:hover:bg-slate-800"

@@ -140,6 +140,25 @@ function Dashboard() {
     }
   };
 
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success("Task deleted successfully");
+      fetchTaskStats();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast.error("Failed to delete task");
+    }
+  };
+
   useEffect(() => {
     const loadDashboard = async () => {
       const token = localStorage.getItem("token");
@@ -276,6 +295,7 @@ function Dashboard() {
                           tasks={taskData.todaysTasks}
                           icon="📝"
                           onStatusChange={handleStatusChange}
+                          onDelete={handleDeleteTask}
                           emptyMessage="No tasks scheduled for today"
                           color="blue"
                         />
@@ -288,6 +308,7 @@ function Dashboard() {
                           tasks={taskData.dueTasks}
                           icon="⏰"
                           onStatusChange={handleStatusChange}
+                          onDelete={handleDeleteTask}
                           emptyMessage="No overdue tasks"
                           color="red"
                         />
@@ -300,6 +321,7 @@ function Dashboard() {
                           tasks={taskData.upcomingTasks}
                           icon="🔮"
                           onStatusChange={handleStatusChange}
+                          onDelete={handleDeleteTask}
                           emptyMessage="No upcoming tasks scheduled"
                           color="yellow"
                         />

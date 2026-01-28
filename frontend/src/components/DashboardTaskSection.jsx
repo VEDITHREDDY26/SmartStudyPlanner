@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import DashboardTaskCard from "./DashboardTaskCard";
 
-const DashboardTaskSection = ({ title, tasks = [], icon, onStatusChange, emptyMessage, color = "blue" }) => {
+const DashboardTaskSection = ({ title, tasks = [], icon, onStatusChange, onDelete, emptyMessage, color = "blue" }) => {
   const { darkMode } = useContext(ThemeContext);
 
   // Ensure tasks is always an array
@@ -36,7 +36,12 @@ const DashboardTaskSection = ({ title, tasks = [], icon, onStatusChange, emptyMe
         <div className="space-y-4">
           {safeTaskList.map((task) => (
             task && task._id ? (
-              <DashboardTaskCard key={task._id} task={task} onStatusChange={onStatusChange} />
+              <DashboardTaskCard 
+                key={task._id} 
+                task={task} 
+                onStatusChange={onStatusChange} 
+                onDelete={onDelete}
+              />
             ) : null
           ))}
         </div>
