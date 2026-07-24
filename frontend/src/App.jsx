@@ -16,12 +16,20 @@ import NotificationSettings from "./components/NotificationSettings";
 import PrivateRoute from "./components/PrivateRoute";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "./context/ThemeContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import './App.css';
 import ProgressTracker from './components/ProgressTracker';
 
 function App() {
   return (
     <ThemeProvider>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme="dark"
+        style={{ zIndex: 99999 }}
+      />
       <Router>
         <Routes>
           {/* Public Routes */}

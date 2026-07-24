@@ -2,8 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { API_BASE_URL } from "../config/api";
 import { motion } from "framer-motion";
 
@@ -38,7 +37,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex w-full">
-      <ToastContainer theme="dark" style={{ zIndex: 9999 }} />
 
       {/* Left Side - Form Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-950 relative overflow-hidden">

@@ -6,7 +6,8 @@ export const ThemeProvider = ({ children }) => {
   // Check local storage for user's previous theme preference
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('darkMode');
-    return savedTheme === 'true';
+    // Default to dark mode when no preference is saved
+    return savedTheme !== 'false';
   });
 
   // Update local storage when theme changes

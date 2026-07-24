@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
@@ -282,7 +281,6 @@ const NotificationSettings = () => {
         </div>
       </form>
       
-      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 };

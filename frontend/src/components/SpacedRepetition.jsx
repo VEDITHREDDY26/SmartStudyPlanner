@@ -2,8 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ThemeContext } from '../context/ThemeContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../config/api';
 
 const SpacedRepetition = () => {
@@ -147,7 +146,6 @@ const SpacedRepetition = () => {
   
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-800'}`}>
-      <ToastContainer />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">

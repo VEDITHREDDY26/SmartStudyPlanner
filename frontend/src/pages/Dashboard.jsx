@@ -344,7 +344,7 @@ function Dashboard() {
                       whileHover={{ y: -5 }}
                       className="glass-card p-6 border border-white/20 shadow-xl"
                     >
-                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <span className="mr-2">⚡</span> Quick Actions
                       </h2>
                       <div className="grid grid-cols-1 gap-4">
@@ -376,7 +376,7 @@ function Dashboard() {
                       transition={{ duration: 0.5, delay: 0.4 }}
                       className="glass-card p-6 border border-white/20 shadow-xl"
                     >
-                      <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <span className="mr-2">✅</span> Recently Completed
                       </h2>
                       {taskData.completedTasks && taskData.completedTasks.length > 0 ? (
@@ -388,16 +388,16 @@ function Dashboard() {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
                               whileHover={{ scale: 1.02 }}
-                              className="flex items-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 shadow-sm"
+                              className="flex items-center p-4 rounded-xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors border border-slate-200/50 dark:border-white/10 shadow-sm"
                             >
                               <div className="bg-emerald-500/20 p-2 rounded-full mr-4 flex-shrink-0">
-                                <svg className="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
                                 </svg>
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-slate-200 line-through truncate">{task.subject}</p>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-sm font-semibold text-slate-600 dark:text-slate-200 line-through truncate">{task.subject}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                   {new Date(task.updatedAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
@@ -405,7 +405,7 @@ function Dashboard() {
                           ))}
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-400 bg-white/5 rounded-xl border border-dashed border-slate-500/30">
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-dashed border-slate-300/50 dark:border-slate-500/30">
                           <span className="text-2xl mb-2 opacity-50">💤</span>
                           <p>No completed tasks yet</p>
                         </div>

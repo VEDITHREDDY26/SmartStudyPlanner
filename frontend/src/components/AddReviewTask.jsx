@@ -1,8 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { ThemeContext } from '../context/ThemeContext';
 import { API_BASE_URL } from '../config/api';
 
@@ -76,7 +75,6 @@ const AddReviewTask = () => {
   
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-800'}`}>
-      <ToastContainer position="top-right" autoClose={3000} />
       
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
